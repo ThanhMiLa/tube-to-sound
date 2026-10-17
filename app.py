@@ -3,6 +3,7 @@ import sys
 import shutil
 import threading
 import subprocess
+import urllib.parse
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 
@@ -17,6 +18,24 @@ import yt_dlp
 # Set appearance mode and color theme
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
+
+
+def clean_youtube_url(raw_url):
+    """Strip playlist and tracking parameters to only download the single target video."""
+    url = raw_url.strip()
+    try:
+        parsed = urllib.parse.urlparse(url)
+        if "youtube.com" in parsed.netloc:
+            qs = urllib.parse.parse_qs(parsed.query)
+            if 'v' in qs:
+                clean_query = urllib.parse.urlencode({'v': qs['v'][0]})
+                return urllib.parse.urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', clean_query, ''))
+        elif "youtu.be" in parsed.netloc:
+            # youtu.be/<video_id>
+            return urllib.parse.urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
+    except Exception:
+        pass
+    return url
 
 
 def get_ffmpeg_dir():
@@ -51,11 +70,19 @@ class TubeToSoundApp(ctk.CTk):
         self.geometry("620x470")
         self.resizable(False, False)
 
+        # Handle window close event cleanly
+        self.protocol("WM_DELETE_WINDOW", self._on_window_close)
+
         # Default save directory: Downloads
         self.download_folder = os.path.expanduser("~/Downloads")
         self.is_downloading = False
 
         self._build_ui()
+
+    def _on_window_close(self):
+        """Immediately terminate all threads and exit without hanging."""
+        self.destroy()
+        os._exit(0)
 
     def _build_ui(self):
         # 1. Header
@@ -208,17 +235,20 @@ class TubeToSoundApp(ctk.CTk):
         if self.is_downloading:
             return
 
-        url = self.url_entry.get().strip()
-        if not url:
+        raw_url = self.url_entry.get().strip()
+        if not raw_url:
             messagebox.showwarning("Missing URL", "Please paste a valid YouTube URL!")
             return
+
+        # Clean URL to prevent infinite playlist loops
+        clean_url = clean_youtube_url(raw_url)
 
         self.is_downloading = True
         self.download_btn.configure(state="disabled", text="Processing...")
         self.progress_bar.set(0)
         self._update_status("Connecting...", 0.1)
 
-        thread = threading.Thread(target=self._run_download, args=(url,), daemon=True)
+        thread = threading.Thread(target=self._run_download, args=(clean_url,), daemon=True)
         thread.start()
 
     def _run_download(self, url):
@@ -230,6 +260,7 @@ class TubeToSoundApp(ctk.CTk):
             'concurrent_fragment_downloads': 8,
             'buffersize': 1024 * 256,
             'noplaylist': True,
+            'overwrites': True,
             'quiet': True,
             'no_warnings': True,
             'postprocessors': [
@@ -244,7 +275,7 @@ class TubeToSoundApp(ctk.CTk):
                 }
             ],
             'postprocessor_args': {
-                'ffmpeg': ['-threads', '0']
+                'ffmpeg': ['-threads', '0', '-y']
             },
             'progress_hooks': [self._progress_hook],
         }
@@ -259,7 +290,7 @@ class TubeToSoundApp(ctk.CTk):
                 title = info.get('title', 'Audio')
 
             self.after(0, self._on_success, title)
-        except Exception as e:
+        except BaseException as e:
             self.after(0, self._on_error, str(e))
 
     def _on_success(self, title):
