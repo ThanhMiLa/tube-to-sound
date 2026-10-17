@@ -1,12 +1,10 @@
 # Tube to Sound
 
-Tube to Sound is a high-performance cross-platform desktop application designed to convert YouTube videos into high-quality MP3 audio files on macOS and Windows.
-
----
-
 ## Overview
 
-The application provides a standalone, private, and ad-free alternative to web-based YouTube converters. It downloads audio streams directly and transcodes them locally using FFmpeg, eliminating queue wait times, audio compression degradation, and duration restrictions.
+Tube to Sound is a high-performance cross-platform desktop application designed to convert YouTube videos into high-quality MP3 audio files on macOS and Windows.
+
+It provides a standalone, private, and ad-free alternative to web-based converters by downloading audio streams directly and transcoding them locally using FFmpeg—eliminating queue wait times, audio compression degradation, and duration restrictions.
 
 ### Key Capabilities
 
