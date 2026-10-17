@@ -93,6 +93,7 @@ jobs:
             --collect-all customtkinter `
             --collect-all yt_dlp `
             --add-binary "$realFfmpeg;." `
+            --add-data "AppIcon.ico;." `
             app.py
 
       - name: Upload Windows Artifact

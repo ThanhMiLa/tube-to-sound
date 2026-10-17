@@ -61,8 +61,9 @@ def create_mac_icns(base_img, output_icns="AppIcon.icns"):
 
 
 def create_windows_ico(base_img, output_ico="AppIcon.ico"):
+    # Windows chuẩn BMP 32-bit uncompressed DIB để tương thích tối đa với GDI và Tkinter
     ico_sizes = [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
-    base_img.save(output_ico, format="ICO", sizes=ico_sizes)
+    base_img.save(output_ico, format="ICO", sizes=ico_sizes, bitmap_format="bmp")
     print(f"Created Windows icon: {output_ico}")
 
 

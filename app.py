@@ -73,6 +73,15 @@ class TubeToSoundApp(ctk.CTk):
         # Handle window close event cleanly
         self.protocol("WM_DELETE_WINDOW", self._on_window_close)
 
+        # Set window and taskbar icon on Windows
+        try:
+            bundle_dir = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+            ico_path = os.path.join(bundle_dir, "AppIcon.ico")
+            if os.path.exists(ico_path) and sys.platform == "win32":
+                self.iconbitmap(ico_path)
+        except Exception:
+            pass
+
         # Default save directory: Downloads
         self.download_folder = os.path.expanduser("~/Downloads")
         self.is_downloading = False
