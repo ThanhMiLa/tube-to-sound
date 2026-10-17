@@ -6,7 +6,7 @@ import subprocess
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 
-# Đảm bảo đường dẫn brew và system có trong PATH trên macOS / Linux
+# Ensure brew and system binaries are in PATH on macOS / Linux
 if sys.platform == "darwin":
     for path in ["/opt/homebrew/bin", "/usr/local/bin"]:
         if path not in os.environ.get("PATH", ""):
@@ -14,14 +14,14 @@ if sys.platform == "darwin":
 
 import yt_dlp
 
-# Cấu hình giao diện macOS & Windows
+# Set appearance mode and color theme
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
 
 
 def get_ffmpeg_dir():
-    """Tự động tìm kiếm thư mục chứa ffmpeg trên cả macOS và Windows."""
-    # Nếu chạy từ bản đóng gói PyInstaller
+    """Locate the directory containing ffmpeg on both macOS and Windows."""
+    # Check PyInstaller bundle
     if getattr(sys, 'frozen', False):
         bundle_dir = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
         binary_name = "ffmpeg.exe" if sys.platform == "win32" else "ffmpeg"
@@ -29,12 +29,12 @@ def get_ffmpeg_dir():
         if os.path.exists(local_ffmpeg):
             return bundle_dir
 
-    # Tìm trong PATH
+    # Check system PATH
     system_ffmpeg = shutil.which("ffmpeg")
     if system_ffmpeg:
         return os.path.dirname(system_ffmpeg)
 
-    # Đường dẫn brew mặc định trên Mac
+    # Standard Homebrew paths on macOS
     if sys.platform == "darwin":
         for p in ["/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg"]:
             if os.path.exists(p):
@@ -51,7 +51,7 @@ class TubeToSoundApp(ctk.CTk):
         self.geometry("620x470")
         self.resizable(False, False)
 
-        # Thư mục lưu mặc định: Downloads của máy
+        # Default save directory: Downloads
         self.download_folder = os.path.expanduser("~/Downloads")
         self.is_downloading = False
 
@@ -68,50 +68,50 @@ class TubeToSoundApp(ctk.CTk):
 
         self.subtitle_label = ctk.CTkLabel(
             self,
-            text="Tải siêu tốc & chuyển đổi YouTube sang MP3 chất lượng cao",
+            text="Fast download & high-quality YouTube to MP3 converter",
             font=ctk.CTkFont(size=13),
             text_color="gray"
         )
         self.subtitle_label.pack(pady=(0, 18))
 
-        # 2. Khung nhập liệu chính
+        # 2. Main Input Frame
         self.main_frame = ctk.CTkFrame(self, corner_radius=12)
         self.main_frame.pack(padx=25, pady=5, fill="x")
 
         # URL Input
         self.url_label = ctk.CTkLabel(
             self.main_frame,
-            text="Đường link YouTube:",
+            text="YouTube URL:",
             font=ctk.CTkFont(size=13, weight="bold")
         )
         self.url_label.pack(anchor="w", padx=15, pady=(15, 5))
 
         self.url_entry = ctk.CTkEntry(
             self.main_frame,
-            placeholder_text="Dán link YouTube vào đây (https://www.youtube.com/watch?v=...)",
+            placeholder_text="Paste YouTube link here (https://www.youtube.com/watch?v=...)",
             height=38,
             font=ctk.CTkFont(size=13)
         )
         self.url_entry.pack(fill="x", padx=15, pady=(0, 15))
 
-        # Cài đặt chất lượng & Thư mục lưu
+        # Quality & Destination Folder Settings
         self.settings_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         self.settings_frame.pack(fill="x", padx=15, pady=(0, 15))
 
-        # Chất lượng
-        self.quality_label = ctk.CTkLabel(self.settings_frame, text="Chất lượng âm thanh:")
+        # Audio Quality
+        self.quality_label = ctk.CTkLabel(self.settings_frame, text="Audio Quality:")
         self.quality_label.grid(row=0, column=0, sticky="w", padx=(0, 10))
 
         self.quality_menu = ctk.CTkOptionMenu(
             self.settings_frame,
-            values=["320 kbps (Cao nhất)", "256 kbps", "192 kbps (Tiêu chuẩn)", "128 kbps"],
+            values=["320 kbps (Best)", "256 kbps", "192 kbps (Standard)", "128 kbps"],
             width=175
         )
-        self.quality_menu.set("320 kbps (Cao nhất)")
+        self.quality_menu.set("320 kbps (Best)")
         self.quality_menu.grid(row=0, column=1, sticky="w")
 
-        # Thư mục lưu
-        self.folder_label = ctk.CTkLabel(self.settings_frame, text="Lưu tại:")
+        # Destination Folder
+        self.folder_label = ctk.CTkLabel(self.settings_frame, text="Save to:")
         self.folder_label.grid(row=1, column=0, sticky="w", padx=(0, 10), pady=(10, 0))
 
         folder_name = os.path.basename(self.download_folder) or self.download_folder
@@ -125,26 +125,26 @@ class TubeToSoundApp(ctk.CTk):
         )
         self.folder_btn.grid(row=1, column=1, sticky="w", pady=(10, 0))
 
-        # 3. Thanh tiến trình & Trạng thái
+        # 3. Progress Bar & Status
         self.progress_bar = ctk.CTkProgressBar(self)
         self.progress_bar.pack(padx=25, pady=(15, 8), fill="x")
         self.progress_bar.set(0)
 
         self.status_label = ctk.CTkLabel(
             self,
-            text="Sẵn sàng tải...",
+            text="Ready to download",
             font=ctk.CTkFont(size=12),
             text_color="gray"
         )
         self.status_label.pack(pady=(0, 10))
 
-        # 4. Nút bấm hành động
+        # 4. Action Buttons
         self.actions_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.actions_frame.pack(pady=10)
 
         self.download_btn = ctk.CTkButton(
             self.actions_frame,
-            text="⚡ Bắt đầu tải MP3",
+            text="Download MP3",
             font=ctk.CTkFont(size=15, weight="bold"),
             height=42,
             width=180,
@@ -154,7 +154,7 @@ class TubeToSoundApp(ctk.CTk):
 
         self.open_folder_btn = ctk.CTkButton(
             self.actions_frame,
-            text="Mở thư mục lưu",
+            text="Open Folder",
             font=ctk.CTkFont(size=13),
             height=42,
             width=140,
@@ -165,13 +165,13 @@ class TubeToSoundApp(ctk.CTk):
         self.open_folder_btn.pack(side="left", padx=5)
 
     def _choose_folder(self):
-        folder = filedialog.askdirectory(initialdir=self.download_folder, title="Chọn thư mục lưu file MP3")
+        folder = filedialog.askdirectory(initialdir=self.download_folder, title="Select Destination Folder")
         if folder:
             self.download_folder = folder
             self.folder_btn.configure(text=f"📁 {os.path.basename(folder) or folder}")
 
     def _open_downloads_folder(self):
-        """Mở thư mục lưu hỗ trợ cả macOS, Windows và Linux"""
+        """Open destination folder across macOS, Windows, and Linux."""
         if not os.path.exists(self.download_folder):
             return
         if sys.platform == "darwin":
@@ -198,11 +198,11 @@ class TubeToSoundApp(ctk.CTk):
                 percent = downloaded / total
                 speed = d.get('_speed_str', '')
                 eta = d.get('_eta_str', '')
-                self.after(0, self._update_status, f"Đang tải: {percent*100:.1f}% ({speed} - Còn: {eta})", percent)
+                self.after(0, self._update_status, f"Downloading: {percent*100:.1f}% ({speed} - ETA: {eta})", percent)
             else:
-                self.after(0, self._update_status, "Đang tải dữ liệu đa luồng...", 0.6)
+                self.after(0, self._update_status, "Downloading stream...", 0.6)
         elif d['status'] == 'finished':
-            self.after(0, self._update_status, "⚡ Đang tăng tốc chuyển đổi sang MP3...", 0.92)
+            self.after(0, self._update_status, "Converting to MP3...", 0.92)
 
     def _start_download_thread(self):
         if self.is_downloading:
@@ -210,33 +210,28 @@ class TubeToSoundApp(ctk.CTk):
 
         url = self.url_entry.get().strip()
         if not url:
-            messagebox.showwarning("Thiếu link", "Vui lòng dán link YouTube cần tải!")
+            messagebox.showwarning("Missing URL", "Please paste a valid YouTube URL!")
             return
 
         self.is_downloading = True
-        self.download_btn.configure(state="disabled", text="Đang xử lý...")
+        self.download_btn.configure(state="disabled", text="Processing...")
         self.progress_bar.set(0)
-        self._update_status("Đang kết nối...", 0.1)
+        self._update_status("Connecting...", 0.1)
 
         thread = threading.Thread(target=self._run_download, args=(url,), daemon=True)
         thread.start()
 
     def _run_download(self, url):
-        quality_str = self.quality_menu.get().split()[0]  # ví dụ '320', '256', '192', '128'
+        quality_str = self.quality_menu.get().split()[0]  # '320', '256', '192', '128'
 
-        # CẤU HÌNH TỐI ƯU TỐC ĐỘ TỐI ĐA (TẢI ĐA LUỒNG & FFMPEG ĐA NHÂN)
         ydl_opts = {
-            # 1. Chỉ chọn luồng audio trực tiếp chất lượng tốt nhất (m4a/opus)
             'format': 'bestaudio[ext=m4a]/bestaudio/best',
             'outtmpl': os.path.join(self.download_folder, '%(title)s.%(ext)s'),
-            # 2. BẬT TẢI ĐA LUỒNG SONG SONG: Tải 8 phân đoạn cùng một lúc
             'concurrent_fragment_downloads': 8,
-            # 3. Tăng bộ đệm buffer giúp stream nhanh hơn
             'buffersize': 1024 * 256,
             'noplaylist': True,
             'quiet': True,
             'no_warnings': True,
-            # 4. Cấu hình FFmpeg: Dùng full số nhân CPU máy tính (-threads 0)
             'postprocessors': [
                 {
                     'key': 'FFmpegExtractAudio',
@@ -254,7 +249,6 @@ class TubeToSoundApp(ctk.CTk):
             'progress_hooks': [self._progress_hook],
         }
 
-        # Tìm thư mục ffmpeg
         ffmpeg_dir = get_ffmpeg_dir()
         if ffmpeg_dir:
             ydl_opts['ffmpeg_location'] = ffmpeg_dir
@@ -270,16 +264,16 @@ class TubeToSoundApp(ctk.CTk):
 
     def _on_success(self, title):
         self.is_downloading = False
-        self.download_btn.configure(state="normal", text="⚡ Bắt đầu tải MP3")
-        self._update_status(f"✅ Hoàn tất: {title[:40]}...", 1.0, color="#2ecc71")
+        self.download_btn.configure(state="normal", text="Download MP3")
+        self._update_status(f"Completed: {title[:40]}...", 1.0, color="#2ecc71")
         self.url_entry.delete(0, "end")
-        messagebox.showinfo("Thành công", f"Đã chuyển đổi và lưu file MP3 thành công vào:\n{self.download_folder}")
+        messagebox.showinfo("Success", f"MP3 converted and saved successfully to:\n{self.download_folder}")
 
     def _on_error(self, err_msg):
         self.is_downloading = False
-        self.download_btn.configure(state="normal", text="⚡ Bắt đầu tải MP3")
-        self._update_status("❌ Có lỗi xảy ra", 0, color="#e74c3c")
-        messagebox.showerror("Lỗi", f"Không thể tải video:\n{err_msg[:200]}")
+        self.download_btn.configure(state="normal", text="Download MP3")
+        self._update_status("Error occurred", 0, color="#e74c3c")
+        messagebox.showerror("Error", f"Failed to download video:\n{err_msg[:200]}")
 
 
 if __name__ == "__main__":
