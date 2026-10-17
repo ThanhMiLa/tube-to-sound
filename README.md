@@ -1,56 +1,88 @@
-# 🎵 Tube to Sound - YouTube to MP3 Converter
+# Tube to Sound
 
-Ứng dụng Desktop đa nền tảng (macOS & Windows) chuyển đổi link YouTube sang file âm thanh `.mp3` chất lượng cao, nhanh chóng và mượt mà.
-
----
-
-## ✨ Tính năng nổi bật
-
-- ⚡ **Tải siêu tốc:** Áp dụng kỹ thuật tải đa luồng song song (8 fragments đồng thời) và tối ưu hóa toàn bộ nhân CPU khi mã hóa bằng FFmpeg.
-- 🎚️ **Tùy chọn chất lượng:** Hỗ trợ xuất MP3 từ 128 kbps đến **320 kbps (Cực nét)**.
-- 🏷️ **Tự động gắn thẻ Metadata:** Tự động điền thông tin tên bài hát, nghệ sĩ vào file MP3.
-- 🖥️ **Giao diện hiện đại:** Tự động thích ứng giao diện Sáng / Tối (Light / Dark mode) của hệ điều hành macOS và Windows.
-- 📂 **Tải & Mở trực tiếp:** Tự động lưu vào thư mục Downloads của máy tính và có nút mở nhanh thư mục.
+Tube to Sound is a high-performance cross-platform desktop application designed to convert YouTube videos into high-quality MP3 audio files on macOS and Windows.
 
 ---
 
-## 📥 Tải về ứng dụng (Không cần cài đặt code)
+## Overview
 
-Vào trang **[Releases](https://github.com/ThanhMiLa/tube-to-sound/releases)** để tải bản cài đặt mới nhất:
+The application provides a standalone, private, and ad-free alternative to web-based YouTube converters. It downloads audio streams directly and transcodes them locally using FFmpeg, eliminating queue wait times, audio compression degradation, and duration restrictions.
 
-- 🍏 **Dành cho macOS:** Tải file `TubeToSound-macOS.dmg`, mở lên và kéo vào thư mục `Applications`.
-- 🪟 **Dành cho Windows:** Tải file `TubeToSound-Windows.exe` về nhấp đúp là sử dụng được ngay (đã tích hợp sẵn FFmpeg).
+### Key Capabilities
+
+- **Accelerated Download Pipeline**: Employs parallel multi-fragment stream retrieval to maximize network throughput and bypass bandwidth throttling.
+- **Hardware-Optimized Audio Transcoding**: Leverages multi-threaded FFmpeg encoding across all available CPU cores for fast conversion of long videos and podcasts.
+- **Selectable Bitrates**: Supports audio quality options from 128 kbps up to 320 kbps (CBR/VBR).
+- **Automated Metadata Tagging**: Extracts and embeds track title and artist tags directly into the generated MP3 container.
+- **Native OS Interface**: Built with an adaptive user interface conforming to system light and dark themes on both macOS and Windows.
+- **No Length Limitations**: Converts videos of any length, including multi-hour lectures, audiobooks, and live recordings, without timeouts.
 
 ---
 
-## 🛠️ Dành cho lập trình viên (Chạy từ mã nguồn)
+## Download
 
-### 1. Yêu cầu hệ thống:
-- Python 3.12+
-- FFmpeg
+Pre-compiled standalone packages for each operating system are available on the [Releases](https://github.com/ThanhMiLa/tube-to-sound/releases) page.
 
-### 2. Cài đặt môi trường:
+| Platform | Package Format | Details |
+| :--- | :--- | :--- |
+| **macOS** | `.dmg` installer | Compatible with Apple Silicon and Intel Macs |
+| **Windows** | `.exe` executable | Standalone binary with FFmpeg bundled |
+
+---
+
+## Installation
+
+### macOS
+
+1. Download `TubeToSound-macOS.dmg` from the latest release.
+2. Open the downloaded `.dmg` file.
+3. Drag the `TubeToSound` application into your `/Applications` directory.
+4. Launch the application from Launchpad, Spotlight (`Cmd + Space`), or the Dock.
+
+> **Note on macOS Security:** Because this application is compiled locally without an Apple Developer ID signature, macOS Gatekeeper may display a security notice on first launch. To permit execution, open **System Settings > Privacy & Security** and select **Open Anyway**.
+
+### Windows
+
+1. Download `TubeToSound-Windows.exe` from the latest release.
+2. Double-click the `.exe` file to launch the application directly.
+3. No separate installation of Python or FFmpeg is required; all dependencies are statically bundled within the binary.
+
+---
+
+## Running from Source
+
+If you prefer running or building the project from source code:
+
+### Prerequisites
+
+- Python 3.12 or higher
+- FFmpeg installed and available in the system `PATH`
+
+### Setup
+
 ```bash
-# Clone dự án
+# Clone the repository
 git clone https://github.com/ThanhMiLa/tube-to-sound.git
 cd tube-to-sound
 
-# Tạo môi trường ảo & cài thư viện
+# Create and activate a virtual environment
 python -m venv .venv
-source .venv/bin/activate  # Trên Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
+source .venv/bin/activate       # macOS / Linux
+# .venv\Scripts\activate       # Windows
 
-### 3. Chạy ứng dụng:
-```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the application
 python app.py
 ```
 
-### 4. Đóng gói ứng dụng:
+### Build Binaries
+
 ```bash
-# Tạo icon
+# Generate application icon
 python create_icon.py
 
-# Đóng gói ra ứng dụng máy tính
+# Package application with PyInstaller
 pyinstaller --noconsole --windowed --name="TubeToSound" --collect-all customtkinter --collect-all yt_dlp app.py
 ```
