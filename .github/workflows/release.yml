@@ -1,0 +1,120 @@
+name: Build & Release Desktop Apps
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: Build macOS DMG
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install system dependencies
+        run: |
+          brew install ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate macOS Icon
+        run: |
+          python create_icon.py
+
+      - name: Build macOS App with PyInstaller
+        run: |
+          pyinstaller --noconsole --windowed --icon=AppIcon.icns \
+            --name="TubeToSound" \
+            --collect-all customtkinter \
+            --collect-all yt_dlp \
+            app.py
+
+      - name: Package into DMG
+        run: |
+          hdiutil create -volname "TubeToSound" -srcfolder "dist/TubeToSound.app" -ov -format UDZO "TubeToSound-macOS.dmg"
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: TubeToSound-macOS.dmg
+
+  build-windows:
+    name: Build Windows EXE
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install FFmpeg on Windows
+        run: |
+          choco install ffmpeg --no-progress
+          echo "$((Get-Command ffmpeg).Source)"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate Windows Icon
+        run: |
+          python create_icon.py
+
+      - name: Build Windows Executable (Bundle FFmpeg)
+        shell: pwsh
+        run: |
+          $ffmpegPath = (Get-Command ffmpeg).Source
+          pyinstaller --noconsole --onefile --icon=AppIcon.ico `
+            --name="TubeToSound-Windows" `
+            --collect-all customtkinter `
+            --collect-all yt_dlp `
+            --add-binary "$ffmpegPath;." `
+            app.py
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: dist/TubeToSound-Windows.exe
+
+  release:
+    name: Publish GitHub Release
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-dmg
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-exe
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            TubeToSound-macOS.dmg
+            TubeToSound-Windows.exe
+          generate_release_notes: true

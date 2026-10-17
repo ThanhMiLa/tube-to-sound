@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+env/
+venv/
+ENV/
+
+# PyInstaller / Build artifacts
+build/
+dist/
+*.spec
+
+# macOS
+.DS_Store
+*.iconset/
+
+# Temporary files
+*.tmp
+
+dist/
+build/
+*.dmg
+*.spec
+__pycache__/
+*.pyc
+venv/
+.env
