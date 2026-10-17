@@ -54,17 +54,16 @@ def create_mac_icns(base_img, output_icns="AppIcon.icns"):
 
     if sys.platform == "darwin":
         subprocess.run(["iconutil", "-c", "icns", iconset_dir, "-o", output_icns], check=True)
-        # Dọn dẹp
         for f in os.listdir(iconset_dir):
             os.remove(os.path.join(iconset_dir, f))
         os.rmdir(iconset_dir)
-        print(f"✅ Đã tạo icon macOS: {output_icns}")
+        print(f"Created macOS icon: {output_icns}")
 
 
 def create_windows_ico(base_img, output_ico="AppIcon.ico"):
     ico_sizes = [(16, 16), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
     base_img.save(output_ico, format="ICO", sizes=ico_sizes)
-    print(f"✅ Đã tạo icon Windows: {output_ico}")
+    print(f"Created Windows icon: {output_ico}")
 
 
 if __name__ == "__main__":

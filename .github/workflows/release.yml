@@ -56,6 +56,8 @@ jobs:
   build-windows:
     name: Build Windows EXE
     runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: "utf-8"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -68,7 +70,6 @@ jobs:
       - name: Install FFmpeg on Windows
         run: |
           choco install ffmpeg --no-progress
-          echo "$((Get-Command ffmpeg).Source)"
 
       - name: Install Python dependencies
         run: |
@@ -82,12 +83,16 @@ jobs:
       - name: Build Windows Executable (Bundle FFmpeg)
         shell: pwsh
         run: |
-          $ffmpegPath = (Get-Command ffmpeg).Source
+          $realFfmpeg = (Get-ChildItem -Path "C:\ProgramData\chocolatey\lib\ffmpeg\tools\ffmpeg\bin\ffmpeg.exe" -ErrorAction SilentlyContinue).FullName
+          if (-not $realFfmpeg) {
+              $realFfmpeg = (Get-Command ffmpeg).Source
+          }
+          Write-Host "Using FFmpeg from: $realFfmpeg"
           pyinstaller --noconsole --onefile --icon=AppIcon.ico `
             --name="TubeToSound-Windows" `
             --collect-all customtkinter `
             --collect-all yt_dlp `
-            --add-binary "$ffmpegPath;." `
+            --add-binary "$realFfmpeg;." `
             app.py
 
       - name: Upload Windows Artifact
